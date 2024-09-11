@@ -1,0 +1,3 @@
+requests
+fake_useragent
+python-telegram-bot==20.3  # Gantilah dengan versi yang sesuai jika perlu
