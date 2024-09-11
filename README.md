@@ -16,8 +16,8 @@ Ikuti langkah-langkah berikut untuk menginstal dan menjalankan skrip di Termux:
 
 2. **Update dan Upgrade Termux:**
 ```
-   pkg update
-   pkg upgrade
+pkg update
+pkg upgrade
 ```
 
 3. **Instal Python:**
@@ -33,8 +33,8 @@ cd agent-301
 
 5. **Konfigurasi Skrip:**
 - Edit skrip Python untuk menambahkan token bot Telegram dan chat ID Anda.
-TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
-CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID'
+- TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
+- CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID'
 
 7. **Jalankan Skrip:**
 ```
