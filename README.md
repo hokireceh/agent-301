@@ -31,7 +31,7 @@ git clone https://github.com/hokireceh/agent-301.git
 cd agent-301
 ```
 
-5. **Edit skrip Python untuk menambahkan token bot Telegram dan chat ID Anda.**
+5. **Edit skrip .env untuk menambahkan token bot Telegram dan chat ID Anda.**
 - TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
 - CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID'
 
