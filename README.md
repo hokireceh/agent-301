@@ -35,7 +35,12 @@ cd agent-301
 - TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
 - CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID'
 
-7. **Jalankan Skrip:**
+6. **Instal Dependensi:**
+```
+pip install -r requirements.txt
+```
+
+8. **Jalankan Skrip:**
 ```
 python main.py
 ```
