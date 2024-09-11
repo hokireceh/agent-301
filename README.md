@@ -32,11 +32,11 @@ cd agent-301
 ```
 
 5. **Konfigurasi Skrip:**
-Edit skrip Python untuk menambahkan token bot Telegram dan chat ID Anda.
+- Edit skrip Python untuk menambahkan token bot Telegram dan chat ID Anda.
 TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
 CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID'
 
-6. **Jalankan Skrip:**
+7. **Jalankan Skrip:**
 ```
 python main.py
 ```
