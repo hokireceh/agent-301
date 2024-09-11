@@ -124,6 +124,6 @@ def main():
 
         send_telegram_message("AUTO LOOPING SETELAH 8 JAM...")
         time.sleep(28800)  # 8 jam dalam detik
-
+        
 if __name__ == "__main__":
     main()
