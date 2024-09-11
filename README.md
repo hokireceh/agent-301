@@ -40,7 +40,7 @@ cd agent-301
 pip install -r requirements.txt
 ```
 
-8. **Jalankan Skrip:**
+7. **Jalankan Skrip:**
 ```
 python main.py
 ```
