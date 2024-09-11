@@ -3,43 +3,42 @@ import urllib.parse
 from fake_useragent import UserAgent
 import time
 import json
-from telegram import Bot
+import os
+from dotenv import load_dotenv
+from telegram import Bot, Update
+from telegram.ext import Application, CommandHandler, CallbackContext
+import asyncio
 
-# Telegram bot setup
-TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
-CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID'
-bot = Bot(token=TELEGRAM_TOKEN)
+# Load environment variables from .env file
+load_dotenv()
 
-# Fungsi untuk mengirim pesan ke Telegram
-def send_telegram_message(message):
-    bot.send_message(chat_id=CHAT_ID, text=message)
+# Get the Telegram bot token and chat ID from environment variables
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+CHAT_ID = os.getenv('CHAT_ID')
 
-# Fungsi untuk memecah data dan mengambil username dari authorization token atau user data
+# Initialize Telegram bot
+app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+
+async def send_telegram_message(message):
+    await app.bot.send_message(chat_id=CHAT_ID, text=message)
+
 def extract_username(authorization):
     try:
-        # Memecah string query
         parsed_data = urllib.parse.parse_qs(authorization)
         user_data_json = parsed_data.get('user', [''])[0]
-
-        # Decode URL encoded string menjadi JSON
         user_data = json.loads(urllib.parse.unquote(user_data_json))
-
-        # Mengambil username dari JSON
         username = user_data.get('username', 'unknown')
         return username
     except (json.JSONDecodeError, KeyError):
         return 'unknown'
 
-# Fungsi untuk membaca authorization dari file query.txt
 def load_authorizations_with_usernames(file_path):
     with open(file_path, 'r') as file:
         authorizations = file.readlines()
-
     auth_with_usernames = [{'authorization': auth.strip(), 'username': extract_username(auth)} for auth in authorizations]
     return auth_with_usernames
 
-# Fungsi untuk klaim task
-def claim_tasks(authorization, account_number, username):
+async def claim_tasks(authorization, account_number, username):
     ua = UserAgent()
     headers = {
         'User-Agent': ua.random,
@@ -59,7 +58,8 @@ def claim_tasks(authorization, account_number, username):
             result = json_response.get("result", {})
             balance = result.get("balance", 0)
             message = f"#ACCOUNT {username} | BALANCE: {balance} AP\nMENJALANKAN AUTO CLAIM TASK...\n"
-            send_telegram_message(message)
+            print(message)
+            await send_telegram_message(message)
 
             tasks = result.get("tasks", [])
             for task in tasks:
@@ -71,26 +71,29 @@ def claim_tasks(authorization, account_number, username):
                 max_count = task.get("max_count")
 
                 if max_count is None and not is_claimed:
-                    claim_task(headers, task_type, title)
+                    await claim_task(headers, task_type, title)
 
                 elif task_type == "video" and count < max_count:
                     while count < max_count:
-                        progress_message = f"#TASK {task_type} - {title} PROGRESS: {count}/{max_count}"
-                        send_telegram_message(progress_message)
-                        if claim_task(headers, task_type, title):
+                        print(f"#TASK {task_type} - {title} PROGRESS: {count}/{max_count}")
+                        if await claim_task(headers, task_type, title):
                             count += 1
                         else:
                             break
 
                 elif not is_claimed and count >= max_count:
-                    claim_task(headers, task_type, title)
-            send_telegram_message("SEMUA TASK DONE!")
+                    await claim_task(headers, task_type, title)
+            print("\nSEMUA TASK DONE!")
         else:
-            send_telegram_message("GAGAL MENGAMBIL TASK. ULANGI BREKK.")
+            error_message = "GAGAL MENGAMBIL TASK. ULANGI BREKK."
+            print(error_message)
+            await send_telegram_message(error_message)
     else:
-        send_telegram_message(f"# HTTP Error: {response.status_code}")
+        http_error_message = f"# HTTP Error: {response.status_code}"
+        print(http_error_message)
+        await send_telegram_message(http_error_message)
 
-def claim_task(headers, task_type, title):
+async def claim_task(headers, task_type, title):
     url_complete_task = 'https://api.agent301.org/completeTask'
     claim_data = {"type": task_type}
     response = requests.post(url_complete_task, headers=headers, json=claim_data)
@@ -99,31 +102,32 @@ def claim_task(headers, task_type, title):
         result = response.json().get("result", {})
         task_reward = result.get("reward", 0)
         balance = result.get("balance", 0)
-        message = f"#TASK {task_type} - {title} - REWARD {task_reward} AP - BALANCE NOW: {balance} AP"
-        send_telegram_message(message)
+        task_message = f"#TASK {task_type} - {title} - REWARD {task_reward} AP - BALANCE NOW: {balance} AP"
+        print(task_message)
         return True
     else:
-        message = f"#TASK {task_type} - {title} - GAGAL CLAIM!"
-        send_telegram_message(message)
+        task_fail_message = f"#TASK {task_type} - {title} - GAGAL CLAIM!"
+        print(task_fail_message)
+        await send_telegram_message(task_fail_message)
         return False
 
-# Fungsi utama untuk menjalankan seluruh proses
-def main():
+async def main():
     auth_data = load_authorizations_with_usernames('query.txt')
 
     while True:
         for account_number, data in enumerate(auth_data, start=1):
             authorization = data['authorization']
             username = data['username']
+            account_message = f"\n------------------------------------\n  ## ACCOUNT #{account_number} ##\n------------------------------------"
+            print(account_message)
+            await send_telegram_message(account_message)
 
-            # Menampilkan informasi tentang akun yang sedang dijalankan
-            message = f"\n------------------------------------\n  ## ACCOUNT #{account_number} ##\n------------------------------------"
-            send_telegram_message(message)
+            await claim_tasks(authorization, account_number, username)
 
-            claim_tasks(authorization, account_number, username)
+        loop_message = "AUTO LOOPING SETELAH 8 JAM..."
+        print(loop_message)
+        await send_telegram_message(loop_message)
+        await asyncio.sleep(28800)  # 8 jam dalam detik
 
-        send_telegram_message("AUTO LOOPING SETELAH 8 JAM...")
-        time.sleep(28800)  # 8 jam dalam detik
-        
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
